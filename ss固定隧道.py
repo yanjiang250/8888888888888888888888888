@@ -458,7 +458,12 @@ async def main():
         PORT,
         max_size=None,
         compression=None,
-        ping_interval=20
+        ping_interval=20,
+        process_request=lambda connection, request: (
+            connection.respond(400, "Bad Request\n")
+            if request.headers.get("Upgrade", "").lower() != "websocket"
+            or "upgrade" not in request.headers.get("Connection", "").lower()
+            else None
     ):
         try:
             start_tunnel(binary)
