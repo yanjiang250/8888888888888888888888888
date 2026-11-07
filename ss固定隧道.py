@@ -464,6 +464,7 @@ async def main():
             if request.headers.get("Upgrade", "").lower() != "websocket"
             or "upgrade" not in request.headers.get("Connection", "").lower()
             else None
+        )
     ):
         try:
             start_tunnel(binary)
