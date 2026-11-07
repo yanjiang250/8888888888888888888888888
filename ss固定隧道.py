@@ -470,6 +470,7 @@ async def main():
         or "upgrade" not in request.headers.get("Connection", "").lower()
         else None
     )
+    )
 ):
         try:
             start_tunnel(binary)
