@@ -459,13 +459,18 @@ async def main():
         max_size=None,
         compression=None,
         ping_interval=20,
-        process_request=lambda connection, request: (
-            connection.respond(400, "Bad Request\n")
-            if request.headers.get("Upgrade", "").lower() != "websocket"
-            or "upgrade" not in request.headers.get("Connection", "").lower()
-            else None
-        )
-    ):
+    process_request=lambda connection, request: (
+    connection.respond(
+        404, "404 page not found"
+    )
+    if request.path.split("?", 1)[0] != PATH
+    else (
+        connection.respond(400, "Bad Request")
+        if request.headers.get("Upgrade", "").lower() != "websocket"
+        or "upgrade" not in request.headers.get("Connection", "").lower()
+        else None
+    )
+):
         try:
             start_tunnel(binary)
 
