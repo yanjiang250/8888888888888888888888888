@@ -426,7 +426,10 @@ def start_tunnel(binary):
         "run",
         "--token",
         CLOUDFLARED_TOKEN
-    ])
+    ],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL                            
+    )
 
     time.sleep(3)
 
