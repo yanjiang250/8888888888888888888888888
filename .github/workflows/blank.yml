@@ -1,0 +1,57 @@
+name: Tailscale VM with Root SSH
+
+on:
+  workflow_dispatch:
+
+jobs:
+  setup-vm:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install OpenSSH and allow root login
+        run: |
+          sudo apt update
+          sudo apt install -y openssh-server
+          
+          # 设置 root 密码为 1234
+          echo "root:1234" | sudo chpasswd
+          
+          # 修改 SSH 配置允许 root 登录
+          sudo sed -i 's/^#PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config
+          sudo sed -i 's/^PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config
+          sudo systemctl restart ssh
+
+      - name: Install Tailscale
+        run: |
+          curl -fsSL https://tailscale.com/install.sh | sh
+
+      - name: Start Tailscale
+        run: |
+          # 启动 tailscale 服务
+          sudo tailscaled &
+          sleep 5
+          
+          # 如果尚未登录，则使用 authkey 登录
+          if ! sudo tailscale status | grep -q "100."; then
+            sudo tailscale up \
+              --authkey="${{ secrets.TAILSCALE_AUTHKEY }}" \
+              --hostname="github-action-vm" \
+              --accept-routes \
+              --accept-dns
+          fi
+
+      - name: Print SSH info
+        run: |
+          IP=$(tailscale ip -4)
+          echo "SSH into VM as root using:"
+          echo "ssh root@${IP}"
+          echo "Password: 1234"
+          echo "Port: 22"
+
+      - name: Keep Runner Alive
+        run: |
+          echo "Runner will keep alive. Cancel workflow manually to stop."
+          tail -f /dev/null
